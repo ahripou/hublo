@@ -280,7 +280,7 @@ Prix HT producteur    :  740 cts (7,40 €)
 
 - `/auth/register` : inscription client (email + mot de passe)
 - `/auth/login`
-- Invitation email pour les 30 clients existants (lien magique Supabase)
+- **Pas d'import des 30 clients LRQDO.** Ils créent eux-mêmes leur compte via `/auth/register` (communication externe par email informant de la bascule).
 
 ### Client (`/client/*` protégé)
 
@@ -428,9 +428,12 @@ NODE_ENV=
 
 ---
 
-## Questions ouvertes (à trancher avant le code, non bloquantes pour ce doc)
+## Décisions verrouillées
 
-- **Annulation de vente** : au MVP, admin uniquement, remboursement des clients via **Mollie refund API** (on n'a pas de crédit client). À confirmer.
-- **Import des 30 clients** : création manuelle + mail magique Supabase, ou laisse-t-on s'inscrire librement ? Décision actuelle : création automatique avec invitation par email, lien d'activation.
+- **Annulation de vente** : admin uniquement. Remboursement via **Mollie refund API** (pas de crédit client au MVP).
+- **Inscription des clients existants LRQDO** : **pas d'import**. Ils créent leur compte eux-mêmes sur `/auth/register`. Communication externe par email.
+- **Panier avant connexion** : stocké en `localStorage` tant que l'utilisateur n'est pas connecté, migré vers `cart_items` (DB) au login ou register.
+
+## Questions ouvertes (non bloquantes)
+
 - **CGU / politique de confidentialité** : placeholder au MVP, rédaction avant bascule.
-- **Stockage du panier avant inscription** : le client peut-il remplir un panier sans compte puis s'inscrire au checkout ? Proposition : oui, panier en localStorage tant que non connecté, puis migration vers `cart_items` à la connexion.
