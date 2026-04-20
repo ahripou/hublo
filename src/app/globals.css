@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --background: #ffffff;
+    --foreground: #171717;
+    --accent: #2f7a3a;
+}
+
+body {
+    color: var(--foreground);
+    background: var(--background);
+    font-family:
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        'Helvetica Neue',
+        Arial,
+        sans-serif;
+}
+
+/* Mobile-first: zones tactiles ≥ 44×44px sur les actions primaires */
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md bg-[var(--accent)] px-4 py-2 text-white font-medium transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 font-medium transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2;
+    }
+
+    .input-field {
+        @apply block w-full min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-[var(--accent)] focus:ring-2 focus:ring-green-600 focus:outline-none;
+    }
+
+    .label-field {
+        @apply block text-sm font-medium text-gray-700 mb-1;
+    }
+}
