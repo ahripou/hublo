@@ -9,6 +9,8 @@ const links: { href: string; label: string }[] = [
     { href: '/admin/produits', label: 'Produits' },
     { href: '/admin/points-de-collecte', label: 'Points de collecte' },
     { href: '/admin/ventes', label: 'Ventes' },
+    { href: '/admin/reversements', label: 'Reversements' },
+    { href: '/admin/exports', label: 'Exports CSV' },
     { href: '/admin/parametres', label: 'Paramètres' },
 ];
 
