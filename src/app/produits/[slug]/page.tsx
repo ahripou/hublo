@@ -5,9 +5,11 @@ import { notFound } from 'next/navigation';
 
 import { formatCentsAsEuros } from '@/lib/format';
 import { computeUnitPrice } from '@/lib/pricing';
-import type { CollectionPointRow, ProducerRow, ProductRow } from '@/lib/supabase/db-types';
+import type { CollectionPointRow, ProducerRow, ProductRow, SaleRow } from '@/lib/supabase/db-types';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { PublicFooter, PublicHeader } from '@/components/PublicShell';
+
+import { AddToCartForm } from './AddToCartForm';
 
 type ProductFull = ProductRow & {
     producers: Pick<ProducerRow, 'id' | 'name' | 'slug' | 'description'> | null;
@@ -43,7 +45,7 @@ export const dynamic = 'force-dynamic';
 export default async function ProductPage({ params }: { params: { slug: string } }) {
     const supabase = createSupabaseServerClient();
 
-    const [{ data: product }, { data: setting }] = await Promise.all([
+    const [{ data: product }, { data: setting }, { data: user }] = await Promise.all([
         supabase
             .from('products')
             .select('*, producers(id, name, slug, description), collection_points(id, name, slug, coordinator_commission_bps)')
@@ -55,9 +57,26 @@ export default async function ProductPage({ params }: { params: { slug: string }
             .select('value')
             .eq('key', 'platform_commission_bps')
             .maybeSingle<{ value: number }>(),
+        supabase.auth.getUser(),
     ]);
 
     if (!product) notFound();
+
+    // Vérifier qu'une vente est ouverte sur le point du produit
+    let openSale: SaleRow | null = null;
+    if (product.collection_points?.id) {
+        const { data: saleRow } = await supabase
+            .from('sales')
+            .select('*')
+            .eq('collection_point_id', product.collection_points.id)
+            .eq('status', 'open')
+            .order('closes_at', { ascending: true })
+            .limit(1)
+            .maybeSingle<SaleRow>();
+        openSale = saleRow ?? null;
+    }
+
+    const isAuthed = !!user.user;
 
     const platformBps = typeof setting?.value === 'number' ? setting.value : 3500;
     const coordinatorBps = product.collection_points?.coordinator_commission_bps ?? 0;
@@ -147,12 +166,28 @@ export default async function ProductPage({ params }: { params: { slug: string }
                             </p>
                         ) : null}
 
-                        <Link href="/auth/login" className="btn-primary w-full justify-center">
-                            Commander
-                        </Link>
-                        <p className="text-xs text-gray-500">
-                            Connexion requise pour passer une commande.
-                        </p>
+                        {!openSale ? (
+                            <p className="text-sm text-gray-600">
+                                Aucune vente ouverte pour ce produit en ce moment.
+                            </p>
+                        ) : !isAuthed ? (
+                            <>
+                                <Link
+                                    href={`/auth/login?redirect=/produits/${product.slug}`}
+                                    className="btn-primary w-full justify-center"
+                                >
+                                    Se connecter pour commander
+                                </Link>
+                                <p className="text-xs text-gray-500">
+                                    Connexion requise pour passer une commande.
+                                </p>
+                            </>
+                        ) : (
+                            <AddToCartForm
+                                productId={product.id}
+                                maxQty={product.stock_unlimited ? null : (product.stock_qty ?? 0)}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
