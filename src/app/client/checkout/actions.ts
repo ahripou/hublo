@@ -18,6 +18,22 @@ function appUrl(): string {
 }
 
 /**
+ * URL webhook à communiquer à Mollie. Si le déploiement Vercel a activé
+ * « Password Protection », il faut passer le secret de bypass pour que
+ * Mollie puisse appeler l'endpoint sans être bloqué par le mot de passe.
+ * Pas d'effet si VERCEL_AUTOMATION_BYPASS_SECRET n'est pas défini.
+ */
+function webhookUrl(base: string): string {
+    const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    const url = new URL('/api/webhooks/mollie', base);
+    if (bypass) {
+        url.searchParams.set('x-vercel-protection-bypass', bypass);
+        url.searchParams.set('x-vercel-set-bypass-cookie', 'samesitenone');
+    }
+    return url.toString();
+}
+
+/**
  * Action de checkout : transforme le panier en commande + paiement Mollie.
  *
  * Garanties :
@@ -110,7 +126,7 @@ export async function confirmCheckoutAction(): Promise<CheckoutResult> {
             amountCents: totals.totalTtcCents,
             description: `Hublo commande ${order.id.slice(0, 8)}`,
             redirectUrl: `${base}/client/confirmation/${order.id}`,
-            webhookUrl: `${base}/api/webhooks/mollie`,
+            webhookUrl: webhookUrl(base),
         });
         checkoutUrl = payment.checkoutUrl;
 
