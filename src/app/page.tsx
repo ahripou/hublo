@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -22,13 +23,44 @@ export default async function HomePage() {
     .limit(1)
     .maybeSingle()) as { data: OpenSale | null };
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
-      <header className="mb-10">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Hublo.be</h1>
-        <p className="mt-3 text-lg text-neutral-600">
-          Marketplace de produits locaux belges.
-        </p>
+      <header className="mb-10 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Hublo.be</h1>
+          <p className="mt-3 text-lg text-neutral-600">
+            Marketplace de produits locaux belges.
+          </p>
+        </div>
+        <nav className="mt-2 flex gap-3 text-sm">
+          {user ? (
+            <Link
+              href="/client"
+              className="rounded border border-neutral-300 px-3 py-1.5 hover:bg-neutral-100"
+            >
+              Mon espace
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="rounded border border-neutral-300 px-3 py-1.5 hover:bg-neutral-100"
+              >
+                Connexion
+              </Link>
+              <Link
+                href="/auth/register"
+                className="rounded bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700"
+              >
+                Créer un compte
+              </Link>
+            </>
+          )}
+        </nav>
       </header>
 
       {openSale ? (
@@ -36,9 +68,7 @@ export default async function HomePage() {
           <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
             Vente en cours
           </p>
-          <h2 className="mt-2 text-2xl font-semibold">
-            {openSale.collection_point.name}
-          </h2>
+          <h2 className="mt-2 text-2xl font-semibold">{openSale.collection_point.name}</h2>
           <p className="mt-1 text-neutral-700">{openSale.collection_point.address}</p>
           <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
             <div>
